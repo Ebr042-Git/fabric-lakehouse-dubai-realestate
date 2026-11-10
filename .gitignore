@@ -1,0 +1,7 @@
+data/
+*.zip
+*.csv
+*.pbix
+*.pbit
+*.pbip
+.env
