@@ -1,0 +1,69 @@
+createOrReplace
+
+	ref table DAX
+
+		measure 'Avg Price per sqm' =
+				
+				DIVIDE ( [Total Sales Value], [Total Sales Area] )
+			lineageTag: 90ccbc60-c672-4a27-baa2-da0b880abc10
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Last Data Date' =
+				
+				VAR k = CALCULATE ( MAX ( gold_fact_transactions[date_key] ), REMOVEFILTERS () )
+				RETURN DATE ( INT ( k / 10000 ), MOD ( INT ( k / 100 ), 100 ), MOD ( k, 100 ) )
+			formatString: General Date
+			lineageTag: 3e2fe7c5-f4fb-48db-b7b2-12c3f46f965a
+
+		measure 'Number of Sales' =
+				
+				CALCULATE ( COUNTROWS ( gold_fact_transactions ), gold_fact_transactions[trans_group_en] = "Sales" )
+			formatString: 0
+			lineageTag: 8807f08e-3991-4fda-9b0b-b4f0854aa1af
+
+		measure 'Sales Value PY' =
+				
+				CALCULATE ( [Total Sales Value], SAMEPERIODLASTYEAR ( gold_dim_date[date] ) )
+			lineageTag: 85192e12-b978-4266-a599-700d39eda83f
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Sales Value PY LfL' =
+				
+				VAR cutoff = EDATE ( [Last Data Date], -12 )
+				RETURN
+				CALCULATE (
+				    [Total Sales Value],
+				    FILTER ( SAMEPERIODLASTYEAR ( gold_dim_date[date] ), gold_dim_date[date] <= cutoff )
+				)
+			lineageTag: b88bcf93-2fd7-4d5f-9f26-7b8514850d7c
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Total Sales Area' =
+				
+				CALCULATE ( SUM ( gold_fact_transactions[procedure_area] ), gold_fact_transactions[trans_group_en] = "Sales" )
+			lineageTag: a8dccaa3-ec19-4f6e-8b50-4d262cb16895
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Total Sales Value' =
+				
+				CALCULATE ( SUM ( gold_fact_transactions[actual_worth] ), gold_fact_transactions[trans_group_en] = "Sales" )
+			lineageTag: 786df2f3-b0d9-481a-bb9a-1f9d34ec8bf2
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'YoY %' =
+				
+				DIVIDE ( [Total Sales Value] - [Sales Value PY], [Sales Value PY] )
+			formatString: 0.00%;-0.00%;0.00%
+			lineageTag: 8fccb57d-cff0-45a5-84c1-b6ddc1a55f78
+
+		measure 'YoY LfL %' =
+				
+				DIVIDE ( [Total Sales Value] - [Sales Value PY LfL], [Sales Value PY LfL] )
+			formatString: 0.00%;-0.00%;0.00%
+			lineageTag: 3034c5e9-28bd-468e-a664-d82300aeebdd
+
